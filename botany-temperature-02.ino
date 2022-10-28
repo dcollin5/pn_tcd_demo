@@ -26,6 +26,7 @@ void setup(void)
 //    digitalWrite(OUTPUT_PIN, HIGH);
 //    digitalWrite(OUTPUT_PIN, HIGH);
 
+    lora.setDeviceLowPower();
     
     lora.init();
 
@@ -81,49 +82,24 @@ void loop(void)
     float temperature = 1.0/(log(R/R0)/B+1/298.15)-273.15; // convert to temperature via datasheet
 
     char myTemp[8];     // empty string
+    uint16_t batteryVoltage = lora.getBatteryVoltage();
+
     dtostrf(temperature, 6, 2, myTemp);
  
     Serial.print("temperature = ");
     Serial.println(temperature);
-
+    Serial.print("batteryVoltage = ");
+    Serial.println(batteryVoltage);
+  
  //   SerialUSB.println("Send string packet to Pervasive Nation NOC.");
     //This sketch will broadcast a string to Pervasive Nation Network
      
     result = lora.transferPacket(myTemp, 8);
+    if (result == 0){
+      lora.setDeviceReset();
+    }
     
-    if(result)
-    {
-        short length;
-        short rssi;
-        SerialUSB.print("Result is: ");
-        memset(buffer, 0, 256);
-        length = lora.receivePacket(buffer, 256, &rssi);
-        SerialUSB.print("Length2 is: ");
-        SerialUSB.println(length);
-        if(length > 0)
-        {
-            SerialUSB.print("Length is: ");
-            SerialUSB.println(length);
-            SerialUSB.print("RSSI is: ");
-            SerialUSB.println(rssi);
-            SerialUSB.print("Data is: ");
-            for(unsigned char i = 0; i < length; i ++)
-            {
-                SerialUSB.print("0x");
-                SerialUSB.print(buffer[i], HEX);
-                SerialUSB.print(" ");
-            }
-            SerialUSB.println();
-        } else {
-            Serial.println("Arduino will be reset after 5 seconds");
-            delay(5000);
-//            resetFunc();  //call reset
-       //     resetDevice();
-
-          //SerialUSB.print("Resetting device... ");
-          //lora.setDeviceReset();
-        }
-        SerialUSB.print("Sleep for 60000 ms (1minutes) ");
-        delay(30000);
-    } 
+ //   SerialUSB.print("Sleep for 60000 ms (1minutes) ");
+    //delay(60000);
+    delay (10000);
 }
